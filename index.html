@@ -180,11 +180,22 @@
       document.getElementById('labelOriginal').textContent = t.labelOriginal;
       document.getElementById('labelResized').textContent = t.labelResized;
       document.getElementById('download').textContent = t.download;
-      // Atualizar textos de tamanho/dimensões para idioma selecionado
-      document.getElementById('originalSize').textContent = t.size + ": -";
-      document.getElementById('originalDimensions').textContent = t.dimensions + ": -";
-      document.getElementById('resizedSize').textContent = t.size + ": -";
-      document.getElementById('resizedDimensions').textContent = t.dimensions + ": -";
+
+      // Atualiza apenas prefixos mantendo valores existentes
+      updateInfoText('originalSize', t.size);
+      updateInfoText('originalDimensions', t.dimensions);
+      updateInfoText('resizedSize', t.size);
+      updateInfoText('resizedDimensions', t.dimensions);
+    }
+
+    function updateInfoText(id, newLabel) {
+      const el = document.getElementById(id);
+      const current = el.textContent.split(':');
+      if (current.length > 1) {
+        el.textContent = newLabel + ':' + current[1];
+      } else {
+        el.textContent = newLabel + ': -';
+      }
     }
 
     function toggleFields(selected) {
