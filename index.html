@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redimensionar Imagem com Ícone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    input, select, button {
+      margin: 5px;
+      padding: 8px;
+      font-size: 14px;
+    }
+    .small-btn {
+      padding: 5px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    #download {
+      display: none;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #0077cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .info {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    #fileIcon {
+  max-width: 60px;   /* limita largura máxima */
+  max-height: 60px;  /* limita altura máxima */
+  height: auto;      /* mantém proporção */
+  width: auto;       /* mantém proporção */
+  vertical-align: middle;
+  display: none;
+  border: 1px solid #ccc;
+  margin-left: 10px;
+}
+
+
+  </style>
+</head>
+<body>
+
+
+  <h1>📷 Redimensionar Imagem</h1>
+  <p>Reduza ou aumente sua imagem grátis em segundos.</p>
+
+
+  <div>
+    <input type="file" id="upload" accept="image/*">
+    <img id="fileIcon" alt="Ícone da imagem">
+  </div>
+
+
+  <div class="info">
+    <button class="small-btn" onclick="toggleFields('dim')">Largura/Altura</button>
+    <button class="small-btn" onclick="toggleFields('percent')">Porcentagem</button>
+  </div>
+
+
+  <div id="dimFields">
+    <label>Largura (px):</label>
+    <input type="number" id="width" placeholder="Ex: 800"><br>
+    <label>Altura (px):</label>
+    <input type="number" id="height" placeholder="Ex: 600"><br>
+    <label><input type="checkbox" id="keepRatio"> Manter proporção</label><br>
+  </div>
+
+
+  <div id="percentField" style="display:none;">
+    <label>Porcentagem (%):</label>
+    <input type="number" id="percent" placeholder="Ex: 50"><br>
+  </div>
+
+
+  <label>Formato de saída:</label>
+  <select id="format">
+    <option value="image/png">PNG</option>
+    <option value="image/jpeg">JPG</option>
+    <option value="image/webp">WebP</option>
+  </select><br>
+  <button onclick="resizeImage()">Redimensionar</button>
+ 
+  <p class="info"><u>Original</u></p>
+  <p id="originalSize" class="info">Tamanho: -</p>
+  <p id="originalDimensions" class="info">Dimensões: -</p>
+  <p class="info"><u>Redimensionada</u></p>
+  <p id="resizedSize" class="info">Tamanho: -</p>
+  <p id="resizedDimensions" class="info">Dimensões: -</p>
+
+
+  <canvas id="canvas" style="display:none;"></canvas><br>
+  <a id="download">📥 Baixar Imagem</a>
+
+
+  <script>
+    let originalImage = new Image();
+    let mode = 'dim';
+    let aspectRatio = null;
+
+
+    function toggleFields(selected) {
+      mode = selected;
+      document.getElementById('dimFields').style.display = selected === 'dim' ? 'block' : 'none';
+      document.getElementById('percentField').style.display = selected === 'percent' ? 'block' : 'none';
+      document.getElementById('width').value = '';
+      document.getElementById('height').value = '';
+      document.getElementById('percent').value = '';
+    }
+
+
+    document.getElementById('upload').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+
+      const icon = document.getElementById('fileIcon');
+      icon.src = URL.createObjectURL(file);
+      icon.onload = () => URL.revokeObjectURL(icon.src);
+      icon.style.display = 'inline-block';
+
+
+      document.getElementById('originalSize').textContent = 'Tamanho original: ' + formatBytes(file.size);
+
+
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        originalImage.onload = function() {
+          aspectRatio = originalImage.width / originalImage.height;
+          document.getElementById('originalDimensions').textContent =
+            'Dimensões originais: ' + originalImage.width + ' x ' + originalImage.height + ' px';
+        };
+        originalImage.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+
+    // 🔹 Atualizar automaticamente mantendo proporção
+    document.getElementById('width').addEventListener('input', function() {
+      if (document.getElementById('keepRatio').checked && aspectRatio) {
+        const w = parseInt(this.value);
+        if (w > 0) {
+          document.getElementById('height').value = Math.round(w / aspectRatio);
+        }
+      }
+    });
+
+
+    document.getElementById('height').addEventListener('input', function() {
+      if (document.getElementById('keepRatio').checked && aspectRatio) {
+        const h = parseInt(this.value);
+        if (h > 0) {
+          document.getElementById('width').value = Math.round(h * aspectRatio);
+        }
+      }
+    });
+
+
+    function resizeImage() {
+      if (!originalImage.src) {
+        alert('Carregue uma imagem primeiro.');
+        return;
+      }
+
+
+      let newW, newH;
+      if (mode === 'percent') {
+        const pct = parseInt(document.getElementById('percent').value);
+        if (!pct || pct <= 0) {
+          alert('Informe uma porcentagem válida.');
+          return;
+        }
+        newW = originalImage.width * (pct / 100);
+        newH = originalImage.height * (pct / 100);
+      } else {
+        const w = parseInt(document.getElementById('width').value);
+        const h = parseInt(document.getElementById('height').value);
+        if (!w && !h) {
+          alert('Informe largura e/ou altura.');
+          return;
+        }
+        newW = w || (originalImage.width * (h / originalImage.height));
+        newH = h || (originalImage.height * (w / originalImage.width));
+      }
+
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = newW;
+      canvas.height = newH;
+      ctx.drawImage(originalImage, 0, 0, newW, newH);
+
+
+      document.getElementById('resizedDimensions').textContent =
+        'Dimensões redimensionadas: ' + Math.round(newW) + ' x ' + Math.round(newH) + ' px';
+
+
+      const dataURL = canvas.toDataURL(document.getElementById('format').value);
+      const sizeBytes = Math.ceil((dataURL.length - dataURL.indexOf(',') - 1) * 3 / 4);
+      document.getElementById('resizedSize').textContent =
+        'Tamanho redimensionado: ' + formatBytes(sizeBytes);
+
+
+      const downloadLink = document.getElementById('download');
+      downloadLink.href = dataURL;
+      downloadLink.download = 'imagem-redimensionada.' +
+        dataURL.substring(dataURL.indexOf('/') + 1, dataURL.indexOf(';'));
+      downloadLink.style.display = 'inline-block';
+    }
+
+
+    function formatBytes(bytes) {
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      if (bytes === 0) return '0 Bytes';
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>
+
+
+
