@@ -52,12 +52,27 @@
       border: 1px solid #ccc;
       margin-left: 10px;
     }
+
+    .lang-btn {
+      margin: 10px;
+      padding: 8px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background: #0077cc;
+      color: white;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-  <h1>📷 Redimensionar Imagem</h1>
-  <p>Reduza ou aumente sua imagem grátis em segundos.</p>
+  <!-- Botões de troca de idioma -->
+  <button class="lang-btn" onclick="setLanguage('pt')">Português</button>
+  <button class="lang-btn" onclick="setLanguage('en')">English</button>
+
+  <h1 id="title">📷 Redimensionar Imagem</h1>
+  <p id="subtitle">Reduza ou aumente sua imagem grátis em segundos.</p>
 
   <div>
     <input type="file" id="upload" accept="image/*">
@@ -65,35 +80,35 @@
   </div>
 
   <div class="info">
-    <button class="small-btn" onclick="toggleFields('dim')">Largura/Altura</button>
-    <button class="small-btn" onclick="toggleFields('percent')">Porcentagem</button>
+    <button class="small-btn" onclick="toggleFields('dim')" id="btnDim">Largura/Altura</button>
+    <button class="small-btn" onclick="toggleFields('percent')" id="btnPercent">Porcentagem</button>
   </div>
 
   <div id="dimFields">
-    <label>Largura (px):</label>
+    <label id="labelWidth">Largura (px):</label>
     <input type="number" id="width" placeholder="Ex: 800" maxlength="4"><br>
-    <label>Altura (px):</label>
+    <label id="labelHeight">Altura (px):</label>
     <input type="number" id="height" placeholder="Ex: 600" maxlength="4"><br>
-    <label><input type="checkbox" id="keepRatio"> Manter proporção</label><br>
+    <label><input type="checkbox" id="keepRatio"> <span id="labelKeepRatio">Manter proporção</span></label><br>
   </div>
 
   <div id="percentField" style="display:none;">
-    <label>Porcentagem (%):</label>
+    <label id="labelPercent">Porcentagem (%):</label>
     <input type="number" id="percent" placeholder="Ex: 50" maxlength="4"><br>
   </div>
 
-  <label>Formato de saída:</label>
+  <label id="labelFormat">Formato de saída:</label>
   <select id="format">
     <option value="image/png">PNG</option>
     <option value="image/jpeg">JPG</option>
     <option value="image/webp">WebP</option>
   </select><br>
-  <button onclick="resizeImage()">Redimensionar</button>
+  <button onclick="resizeImage()" id="btnResize">Redimensionar</button>
 
-  <p class="info"><u>Original</u></p>
+  <p class="info"><u id="labelOriginal">Original</u></p>
   <p id="originalSize" class="info">Tamanho: -</p>
   <p id="originalDimensions" class="info">Dimensões: -</p>
-  <p class="info"><u>Redimensionada</u></p>
+  <p class="info"><u id="labelResized">Redimensionada</u></p>
   <p id="resizedSize" class="info">Tamanho: -</p>
   <p id="resizedDimensions" class="info">Dimensões: -</p>
 
@@ -104,6 +119,73 @@
     let originalImage = new Image();
     let mode = 'dim';
     let aspectRatio = null;
+    let lang = 'pt';
+
+    const translations = {
+      pt: {
+        title: "📷 Redimensionar Imagem",
+        subtitle: "Reduza ou aumente sua imagem grátis em segundos.",
+        btnDim: "Largura/Altura",
+        btnPercent: "Porcentagem",
+        labelWidth: "Largura (px):",
+        labelHeight: "Altura (px):",
+        labelKeepRatio: "Manter proporção",
+        labelPercent: "Porcentagem (%):",
+        labelFormat: "Formato de saída:",
+        btnResize: "Redimensionar",
+        labelOriginal: "Original",
+        labelResized: "Redimensionada",
+        download: "📥 Baixar Imagem",
+        size: "Tamanho",
+        dimensions: "Dimensões",
+        alertNoImage: "Carregue uma imagem primeiro.",
+        alertInvalidPercent: "Informe uma porcentagem válida.",
+        alertInvalidDim: "Informe largura e/ou altura."
+      },
+      en: {
+        title: "📷 Resize Image",
+        subtitle: "Reduce or enlarge your image for free in seconds.",
+        btnDim: "Width/Height",
+        btnPercent: "Percentage",
+        labelWidth: "Width (px):",
+        labelHeight: "Height (px):",
+        labelKeepRatio: "Keep aspect ratio",
+        labelPercent: "Percentage (%):",
+        labelFormat: "Output format:",
+        btnResize: "Resize",
+        labelOriginal: "Original",
+        labelResized: "Resized",
+        download: "📥 Download Image",
+        size: "Size",
+        dimensions: "Dimensions",
+        alertNoImage: "Upload an image first.",
+        alertInvalidPercent: "Enter a valid percentage.",
+        alertInvalidDim: "Enter width and/or height."
+      }
+    };
+
+    function setLanguage(selectedLang) {
+      lang = selectedLang;
+      const t = translations[lang];
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('subtitle').textContent = t.subtitle;
+      document.getElementById('btnDim').textContent = t.btnDim;
+      document.getElementById('btnPercent').textContent = t.btnPercent;
+      document.getElementById('labelWidth').textContent = t.labelWidth;
+      document.getElementById('labelHeight').textContent = t.labelHeight;
+      document.getElementById('labelKeepRatio').textContent = t.labelKeepRatio;
+      document.getElementById('labelPercent').textContent = t.labelPercent;
+      document.getElementById('labelFormat').textContent = t.labelFormat;
+      document.getElementById('btnResize').textContent = t.btnResize;
+      document.getElementById('labelOriginal').textContent = t.labelOriginal;
+      document.getElementById('labelResized').textContent = t.labelResized;
+      document.getElementById('download').textContent = t.download;
+      // Atualizar textos de tamanho/dimensões para idioma selecionado
+      document.getElementById('originalSize').textContent = t.size + ": -";
+      document.getElementById('originalDimensions').textContent = t.dimensions + ": -";
+      document.getElementById('resizedSize').textContent = t.size + ": -";
+      document.getElementById('resizedDimensions').textContent = t.dimensions + ": -";
+    }
 
     function toggleFields(selected) {
       mode = selected;
@@ -123,21 +205,22 @@
       icon.onload = () => URL.revokeObjectURL(icon.src);
       icon.style.display = 'inline-block';
 
-      document.getElementById('originalSize').textContent = 'Tamanho original: ' + formatBytes(file.size);
+      document.getElementById('originalSize').textContent =
+        translations[lang].size + ': ' + formatBytes(file.size);
 
       const reader = new FileReader();
       reader.onload = function (ev) {
         originalImage.onload = function () {
           aspectRatio = originalImage.width / originalImage.height;
           document.getElementById('originalDimensions').textContent =
-            'Dimensões originais: ' + originalImage.width + ' x ' + originalImage.height + ' px';
+            translations[lang].dimensions + ': ' + originalImage.width + ' x ' + originalImage.height + ' px';
         };
         originalImage.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    // 🔹 Atualizar automaticamente mantendo proporção
+    // Mantém proporção
     document.getElementById('width').addEventListener('input', function () {
       if (document.getElementById('keepRatio').checked && aspectRatio) {
         const w = parseInt(this.value);
@@ -156,7 +239,7 @@
       }
     });
 
-    // 🔹 Limitar inputs a 4 caracteres
+    // Limitar inputs a 4 caracteres
     ['width', 'height', 'percent'].forEach(id => {
       document.getElementById(id).addEventListener('input', function () {
         if (this.value.length > 4) {
@@ -167,7 +250,7 @@
 
     function resizeImage() {
       if (!originalImage.src) {
-        alert('Carregue uma imagem primeiro.');
+        alert(translations[lang].alertNoImage);
         return;
       }
 
@@ -175,7 +258,7 @@
       if (mode === 'percent') {
         const pct = parseInt(document.getElementById('percent').value);
         if (!pct || pct <= 0) {
-          alert('Informe uma porcentagem válida.');
+          alert(translations[lang].alertInvalidPercent);
           return;
         }
         newW = originalImage.width * (pct / 100);
@@ -184,7 +267,7 @@
         const w = parseInt(document.getElementById('width').value);
         const h = parseInt(document.getElementById('height').value);
         if (!w && !h) {
-          alert('Informe largura e/ou altura.');
+          alert(translations[lang].alertInvalidDim);
           return;
         }
         newW = w || (originalImage.width * (h / originalImage.height));
@@ -198,12 +281,12 @@
       ctx.drawImage(originalImage, 0, 0, newW, newH);
 
       document.getElementById('resizedDimensions').textContent =
-        'Dimensões redimensionadas: ' + Math.round(newW) + ' x ' + Math.round(newH) + ' px';
+        translations[lang].dimensions + ': ' + Math.round(newW) + ' x ' + Math.round(newH) + ' px';
 
       const dataURL = canvas.toDataURL(document.getElementById('format').value);
       const sizeBytes = Math.ceil((dataURL.length - dataURL.indexOf(',') - 1) * 3 / 4);
       document.getElementById('resizedSize').textContent =
-        'Tamanho redimensionado: ' + formatBytes(sizeBytes);
+        translations[lang].size + ': ' + formatBytes(sizeBytes);
 
       const downloadLink = document.getElementById('download');
       downloadLink.href = dataURL;
